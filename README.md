@@ -28,6 +28,21 @@ as the official Garmin VSCode plugin does, but somehow, it seems like
 when writing code, the autocompletion and go-to-definition functionality
 keeps working, and warnings and errors are showing up as they occur (
 so it might be recompiling in the background and I haven't noticed from
-the logs in ``~/.local/state/nvim/lsp.log``). Just in case recompilation
+the logs in `~/.local/state/nvim/lsp.log`). Just in case recompilation
 works, you may also want to point the plugin to the correct
-developerKeyPath.
+developerKeyPath with the `vim.g.monkeyc_connect_iq_dev_key_path`
+global variable (see available configuration variables in the section
+below).
+
+## Configurable settings:
+
+```
+* vim.g.monkeyc_current_sdk_cfg_path:    string  must be a valid path to the ConnectIQ/current-sdk.cfg file
+                                                  (default: trying to autodetect the path based on the OS)
+* vim.g.monkeyc_connect_iq_dev_key_path: string  must be a valid path to the developer key
+                                                  (default: "~/.Garmin/connect_iq_dev_key.der")
+* vim.g.monkeyc_compiler_options:        string  (default: "")
+* vim.g.monkeyc_publish_warnings:        boolean (default: true)
+* vim.g.monkeyc_default_device:          string  (default: enduro3)
+* vim.g.monkeyc_jungle_files:            string  (default: monkey.jungle)
+```

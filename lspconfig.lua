@@ -9,7 +9,20 @@ return {
       local lspconfig = require("lspconfig")
 
       local function get_monkeyc_language_server_path()
-        local workspace_dir = table.concat(vim.fn.readfile(vim.fn.expand("~/.Garmin/ConnectIQ/current-sdk.cfg")), "\n")
+        -- ~/.Garmin/ConnectIQ/current-sdk.cfg is the Linux path
+        local current_sdk_cfg_path = "~/.Garmin/ConnectIQ/current-sdk.cfg"
+
+        -- if the user overrides the path with the global variable
+        -- g.monkeyc_current_sdk_cfg_path, use this path instead.
+        --
+        -- Else if the current OS is detected a Mac, use the Mac path
+        if vim.g.monkeyc_current_sdk_cfg_path then
+          current_sdk_cfg_path = vim.g.monkeyc_current_sdk_cfg_path
+        elseif vim.loop.os_uname().sysname == "Darwin" then
+          current_sdk_cfg_path = "~/Library/Application Support/Garmin/ConnectIQ/current-sdk.cfg"
+        end
+
+        local workspace_dir = table.concat(vim.fn.readfile(vim.fn.expand(current_sdk_cfg_path)), "\n")
         local jar_path = workspace_dir .. "/bin/LanguageServer.jar"
 
         if vim.fn.filereadable(jar_path) == 1 then
@@ -65,7 +78,14 @@ return {
         }
 
         if not configs.monkeyc_ls then
-          local root = lspconfig.util.root_pattern("manifest.xml") or vim.fn.getcwd()
+          local jungleFiles = vim.g.monkeyc_jungle_files or "monkey.jungle"
+          local root = lspconfig.util.root_pattern("monkey.jungle", "manifest.xml")
+          local rootPath = root(vim.fn.getcwd()) or vim.fn.getcwd()
+          local devKeyPath = "~/.Garmin/connect_iq_dev_key.der"
+          local developerKeyPath = vim.fn.expand(devKeyPath)
+          if vim.g.monkeyc_connect_iq_dev_key_path then
+            developerKeyPath = vim.fn.expand(vim.g.monkeyc_connect_iq_dev_key_path)
+          end
           configs.monkeyc_ls = {
             default_config = {
               cmd = {
@@ -79,17 +99,16 @@ return {
               root_dir = root,
               settings = {
                 {
-                  developerKeyPath = vim.g.monkeyc_connect_iq_dev_key_path
-                    or vim.fn.expand("~/.Garmin/connect_iq_dev_key.der"),
+                  developerKeyPath = developerKeyPath,
                   compilerWarnings = true,
                   compilerOptions = vim.g.monkeyc_compiler_options or "",
                   developerId = "",
-                  jungleFiles = "monkey.jungle",
+                  jungleFiles = jungleFiles,
                   javaPath = "",
                   typeCheckLevel = "Default",
                   optimizationLevel = "Default",
                   testDevices = {
-                    "enduro3", -- get this dynamically from the manifest file
+                    vim.g.monkeyc_default_device or "enduro3", -- I should be getting this dynamically from the manifest file
                   },
                   debugLogLevel = "Default",
                 },
@@ -101,9 +120,9 @@ return {
                 typeCheckMsgDisplayed = true,
                 workspaceSettings = {
                   {
-                    path = root(vim.fn.getcwd()),
+                    path = rootPath,
                     jungleFiles = {
-                      root(vim.fn.getcwd()) .. "/monkey.jungle",
+                      rootPath .. "/monkey.jungle",
                     },
                   },
                 },
