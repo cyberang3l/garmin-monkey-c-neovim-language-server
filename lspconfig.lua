@@ -132,6 +132,18 @@ return {
               },
               ---@param client vim.lsp.Client
               on_attach = function(client, bufnr)
+                client.server_capabilities.completionProvider = {
+                  triggerCharacters = {
+                    ".",
+                    ":",
+                  },
+                  resolveProvider = false,
+                  documentSelector = {
+                    {
+                      pattern = "**/*.{mc,mcgen}",
+                    },
+                  },
+                }
                 -- print(vim.inspect(client.config))
                 local methods = vim.lsp.protocol.Methods
                 local req = client.request
@@ -179,9 +191,8 @@ return {
                     end, bufnr_req)
                   elseif method == methods.textDocument_signatureHelp then
                     -- When calling the signature help, it seems like the server expects
-                    -- some context, but neovim doesn't add it by default.
+                    -- params.context to be set
                     params.context = {
-                      isRetrigger = false,
                       triggerKind = 1,
                     }
                     return req(method, params, handler, bufnr_req)
