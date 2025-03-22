@@ -67,6 +67,9 @@ return {
         monkeycLspCapabilities.textDocument.implementation.dynamicRegistration = true
         monkeycLspCapabilities.textDocument.typeDefinition.dynamicRegistration = true
         monkeycLspCapabilities.textDocument.documentHighlight.dynamicRegistration = true
+        monkeycLspCapabilities.textDocument.hover.dynamicRegistration = true
+        monkeycLspCapabilities.textDocument.signatureHelp.contextSupport = true
+        monkeycLspCapabilities.textDocument.signatureHelp.dynamicRegistration = true
         monkeycLspCapabilities.workspace = {
           didChangeWorkspaceFolders = {
             dynamicRegistration = true,
@@ -117,7 +120,7 @@ return {
               init_options = {
                 publishWarnings = vim.g.monkeyc_publish_warnings or true,
                 compilerOptions = vim.g.monkeyc_compiler_options or "",
-                typeCheckMsgDisplayed = true,
+                typeCheckMsgDisplayed = false,
                 workspaceSettings = {
                   {
                     path = rootPath,
@@ -127,7 +130,9 @@ return {
                   },
                 },
               },
+              ---@param client vim.lsp.Client
               on_attach = function(client, bufnr)
+                -- print(vim.inspect(client.config))
                 local methods = vim.lsp.protocol.Methods
                 local req = client.request
 
@@ -172,6 +177,14 @@ return {
                       -- Call the response handler with the fixed URIs in the result
                       return handler(err, result, context, config)
                     end, bufnr_req)
+                  elseif method == methods.textDocument_signatureHelp then
+                    -- When calling the signature help, it seems like the server expects
+                    -- some context, but neovim doesn't add it by default.
+                    params.context = {
+                      isRetrigger = false,
+                      triggerKind = 1,
+                    }
+                    return req(method, params, handler, bufnr_req)
                   else
                     -- Use the default response handlers for all other requests
                     return req(method, params, handler, bufnr_req)
@@ -182,11 +195,10 @@ return {
           }
         end
 
-        -- print(vim.lsp.client.config)
         lspconfig.monkeyc_ls.setup({})
       end
 
-      -- Configure docs hover popup toggle with <M-h>
+      -- Configure docs hover popup toggle with <M-h> in normal mode
       vim.keymap.set({ "n" }, "\x18@sh", function()
         for _, winid in pairs(vim.api.nvim_tabpage_list_wins(0)) do
           -- if zindex > 0, it the window is a float window - hover popups are float windows
@@ -199,6 +211,7 @@ return {
         -- If no hover windows found, call hover()
         vim.lsp.buf.hover()
       end, { silent = true, noremap = true, buffer = true })
+
       -- Configure <M-j> to enter the hover window if we need to scroll through a long docstring
       -- Double calling of hover enters the float window and allows for browsing the window. Use
       -- 'q' to exit the floating window if you've entered.
@@ -209,6 +222,12 @@ return {
             return
           end
         end
+      end, { silent = true, noremap = true, buffer = true })
+
+      -- Configure function signature help popup with <M-h> in Insert mode (C-K seems like is also working by default)
+      vim.keymap.set({ "i" }, "\x18@sh", function()
+        -- If no hover windows found, call hover()
+        vim.lsp.buf.signature_help()
       end, { silent = true, noremap = true, buffer = true })
     end,
     ---@class PluginLspOpts

@@ -11,9 +11,10 @@ current form, or as a foundation to build on it and add more features.
 
 ## What I have tested and works
 * Go to definition
-* Hover shows help messages and function signatures
+* Hover shows help messages and function signatures in normal mode (<M-H>)
+* <C-K> or <M-H> shows the function signatures in insert mode
 * Auto-completion
-* Warnings and compile errors
+* Warnings and compiler errors
 
 ## Limitations
 Many! What you find here is not very configurable, but as long as
