@@ -221,7 +221,7 @@ return {
         end
         -- If no hover windows found, call hover()
         vim.lsp.buf.hover()
-      end, { silent = true, noremap = true, buffer = true })
+      end, { silent = true, noremap = true })
 
       -- Configure <M-j> to enter the hover window if we need to scroll through a long docstring
       -- Double calling of hover enters the float window and allows for browsing the window. Use
@@ -233,13 +233,13 @@ return {
             return
           end
         end
-      end, { silent = true, noremap = true, buffer = true })
+      end, { silent = true, noremap = true })
 
       -- Configure function signature help popup with <M-h> in Insert mode (C-K seems like is also working by default)
       vim.keymap.set({ "i" }, "\x18@sh", function()
         -- If no hover windows found, call hover()
         vim.lsp.buf.signature_help()
-      end, { silent = true, noremap = true, buffer = true })
+      end, { silent = true, noremap = true })
     end,
     ---@class PluginLspOpts
     opts = {
